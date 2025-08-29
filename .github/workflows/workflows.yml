@@ -1,0 +1,67 @@
+name: Deploy Lambda
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-lambda:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout du repo
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8.12'
+
+      - name: 🔐 Configurer les identifiants AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY_ID_CHEMS }}
+          aws-secret-access-key: ${{ secrets.SECRET_ACCESS_KEY_CHEMS }}
+          aws-region: eu-central-1
+
+      - name: 🧹 Clean Terraform cache
+        run: rm -rf .terraform .terraform.lock.hcl
+
+      - name: 🌍 Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: '1.12.2'
+
+      - name: 🚀 Terraform Init
+        run: terraform init
+
+      - name: 🔍 Import Lambda si elle existe
+        env:
+          ACCESS_TOKEN_HUBSPOT: ${{ secrets.ACCESS_TOKEN_HUBSPOT }}
+        run: |
+          set -e
+          LAMBDA_NAME="hubspot-create-deal"
+          # Créer un fichier temporaire .tfvars avec la variable HubSpot
+          echo "ACCESS_TOKEN_HUBSPOT = \"${ACCESS_TOKEN_HUBSPOT}\"" > temp.tfvars
+
+          if aws lambda get-function --function-name "$LAMBDA_NAME" > /dev/null 2>&1; then
+            echo "✅ Lambda déjà existante, import dans l'état Terraform..."
+            terraform import -var-file=temp.tfvars aws_lambda_function.hubspot_create_deal "$LAMBDA_NAME" || true
+          else
+            echo "ℹ️ Lambda inexistante, elle sera créée par Terraform."
+          fi
+
+          # Supprimer le fichier temporaire
+          rm temp.tfvars
+
+      - name: 🔎 Terraform Plan
+        env:
+          ACCESS_TOKEN_HUBSPOT: ${{ secrets.ACCESS_TOKEN_HUBSPOT }}
+        run: terraform plan -var="ACCESS_TOKEN_HUBSPOT=$ACCESS_TOKEN_HUBSPOT"
+
+      - name: 📦 Terraform Apply
+        env:
+          TF_LOG: DEBUG
+          ACCESS_TOKEN_HUBSPOT: ${{ secrets.ACCESS_TOKEN_HUBSPOT }}
+        run: terraform apply -auto-approve -var="ACCESS_TOKEN_HUBSPOT=$ACCESS_TOKEN_HUBSPOT"
