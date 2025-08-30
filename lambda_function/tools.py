@@ -1,8 +1,8 @@
-from hubspot.crm.deals import SimplePublicObjectInputForCreate
+# from hubspot.crm.deals import SimplePublicObjectInputForCreate
 import os
 import requests
 from datetime import datetime  
-import hubspot
+# import hubspot
 from dotenv import load_dotenv
 import json
 
@@ -22,9 +22,14 @@ ACCESS_TOKEN_HUBSPOT = os.getenv("HUBSPOT_API_KEY")
 # ------------------------------------------------------------------------>
 
 # Fonction permettent de récupérer le dernier fichier JSON du dossier.
-def get_last_json(s3_client, bucket: str, prefix: str) -> dict:
+def get_last_json(s3_client, bucket: str, prefix: str) -> tuple:
     """
-    Récupère le fichier JSON le plus récent dans le dossier S3 et le retourne en dictionnaire Python.
+    Récupère le fichier JSON le plus récent dans le dossier S3 et retourne :
+      - le contenu en dictionnaire Python
+      - la key S3 du fichier
+
+    Returns:
+        tuple: (data: dict, key: str)
     """
     response = s3_client.list_objects_v2(Bucket=bucket, Prefix=prefix)
 
@@ -35,16 +40,16 @@ def get_last_json(s3_client, bucket: str, prefix: str) -> dict:
     sorted_files = sorted(response["Contents"], key=lambda x: x["LastModified"], reverse=True)
 
     # Récupérer le dernier fichier (le plus récent)
-    last_json_key = sorted_files[0]["Key"]
+    file_name = sorted_files[0]["Key"]
 
     # Télécharger le contenu du fichier JSON
-    obj = s3_client.get_object(Bucket=bucket, Key=last_json_key)
+    obj = s3_client.get_object(Bucket=bucket, Key=file_name)
     json_content = obj["Body"].read().decode("utf-8")
 
     # Convertir le JSON en dictionnaire Python
     data = json.loads(json_content)
 
-    return data
+    return data, file_name
 
 # ------------------------------------------------------------------------>
 
@@ -165,40 +170,40 @@ def create_line_item_and_associate_to_deal(product:dict, deal_id:int):
 # ------------------------------------------------------------------------>
 
 # Fonction permettent de créer la transaction avec les lignes produits.
-def create_transaction_with_line_product(commande:dict, DEV=True):
+# def create_transaction_with_line_product(commande:dict, DEV=True):
     
  
     
-    # ----------------------------------------->
-    # Création des dictionnaires.
-    transaction, associations = get_object_hubspot(
-            hubspot_id_company  = commande["id_hubspot"], 
-            deal_name           = "TEST" + commande["nom"], 
+#     # ----------------------------------------->
+#     # Création des dictionnaires.
+#     transaction, associations = get_object_hubspot(
+#             hubspot_id_company  = commande["id_hubspot"], 
+#             deal_name           = "TEST" + commande["nom"], 
             
-            # A voir.
-            client_Naali        = commande["is_naali_client"],
+#             # A voir.
+#             client_Naali        = commande["is_naali_client"],
             
-            # A voir.
-            amount              = commande["total_price"]
-    )
+#             # A voir.
+#             amount              = commande["total_price"]
+#     )
         
-    # Création de l'objet Transaction avec le bon pipeline.
-    simple_public_object_input = SimplePublicObjectInputForCreate(associations=associations, properties=transaction)
-    # ----------------------------------------->
+#     # Création de l'objet Transaction avec le bon pipeline.
+#     simple_public_object_input = SimplePublicObjectInputForCreate(associations=associations, properties=transaction)
+#     # ----------------------------------------->
 
 
-    if not DEV: 
+#     if not DEV: 
         
-        # --------------------------->
-        # Création de la transaction & récupération de son ID.
-        client = hubspot(access_token=ACCESS_TOKEN_HUBSPOT)
-        api_response = client.crm.deals.basic_api.create(simple_public_object_input_for_create=simple_public_object_input)
-        deal_id = api_response.id
+#         # --------------------------->
+#         # Création de la transaction & récupération de son ID.
+#         client = hubspot(access_token=ACCESS_TOKEN_HUBSPOT)
+#         api_response = client.crm.deals.basic_api.create(simple_public_object_input_for_create=simple_public_object_input)
+#         deal_id = api_response.id
         
-        # Association des lignes produits à la transaction.
-        for i in commande["products"]:
-            create_line_item_and_associate_to_deal(product=i, deal_id=deal_id)
-        # --------------------------->
+#         # Association des lignes produits à la transaction.
+#         for i in commande["products"]:
+#             create_line_item_and_associate_to_deal(product=i, deal_id=deal_id)
+#         # --------------------------->
             
-# ------------------------------------------------------------------------>
+# # ------------------------------------------------------------------------>
 
