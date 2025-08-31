@@ -1,4 +1,3 @@
-# from hubspot.crm.deals import SimplePublicObjectInputForCreate
 import os
 import requests
 from datetime import datetime  
@@ -101,9 +100,9 @@ def get_current_iso8601_date():
 # ------------------------------------------------------------------------>
 
 # Fonction permettent de créer les objets transactions & associations : IMPLANTATION / REASSORT
-def get_object_hubspot(hubspot_id_company:int, deal_name:str, amount:float, client_Naali:bool):
+def get_object_hubspot(hubspot_id_company:int, deal_name:str, amount:float, client_Naali:str):
     
-    if not client_Naali:
+    if not client_Naali == "Oui":
         
         # ----------------------------------------------------------->
         IMPLANTATION = [
@@ -136,7 +135,7 @@ def get_object_hubspot(hubspot_id_company:int, deal_name:str, amount:float, clie
         # ----------------------------------------------------------->
     
 
-    if client_Naali :
+    else :
         
         # ----------------------------------------------------------->
         REASSORT = [
@@ -209,40 +208,44 @@ def create_line_item_and_associate_to_deal(product:dict, deal_id:int):
 # ------------------------------------------------------------------------>
 
 # Fonction permettent de créer la transaction avec les lignes produits.
-# def create_transaction_with_line_product(commande:dict, DEV=True):
+def create_transaction_with_line_product(commande:dict, DEV=True):
     
  
     
-#     # ----------------------------------------->
-#     # Création des dictionnaires.
-#     transaction, associations = get_object_hubspot(
-#             hubspot_id_company  = commande["id_hubspot"], 
-#             deal_name           = "TEST" + commande["nom"], 
+    # ----------------------------------------->
+    # Création des dictionnaires.
+    transaction, associations = get_object_hubspot(
+            hubspot_id_company  = commande["id_hubspot"], 
+            deal_name           = "TEST" + "-" + commande["nom"], 
             
-#             # A voir.
-#             client_Naali        = commande["is_naali_client"],
+            # A voir.
+            client_Naali        = commande["is_naali_client"],
             
-#             # A voir.
-#             amount              = commande["total_price"]
-#     )
+            # A voir.
+            amount              = commande["total_price"]
+    )
         
-#     # Création de l'objet Transaction avec le bon pipeline.
-#     simple_public_object_input = SimplePublicObjectInputForCreate(associations=associations, properties=transaction)
-#     # ----------------------------------------->
+    # Création de l'objet Transaction avec le bon pipeline.
+    simple_public_object_input = SimplePublicObjectInputForCreate(associations=associations, properties=transaction)
+    print(simple_public_object_input)
+    # ----------------------------------------->
 
 
-#     if not DEV: 
+    if not DEV: 
         
-#         # --------------------------->
-#         # Création de la transaction & récupération de son ID.
-#         client = hubspot(access_token=ACCESS_TOKEN_HUBSPOT)
-#         api_response = client.crm.deals.basic_api.create(simple_public_object_input_for_create=simple_public_object_input)
-#         deal_id = api_response.id
+        # --------------------------->
+        # Création de la transaction & récupération de son ID.
+        client = hubspot(access_token=ACCESS_TOKEN_HUBSPOT)
+        api_response = client.crm.deals.basic_api.create(simple_public_object_input_for_create=simple_public_object_input)
+        deal_id = api_response.id
         
-#         # Association des lignes produits à la transaction.
-#         for i in commande["products"]:
-#             create_line_item_and_associate_to_deal(product=i, deal_id=deal_id)
-#         # --------------------------->
+        # Association des lignes produits à la transaction.
+        for i in commande["products"]:
+            create_line_item_and_associate_to_deal(product=i, deal_id=deal_id)
+        # --------------------------->
+        
+        # On retourne l'ID de la transaction.
+        return deal_id
             
-# # ------------------------------------------------------------------------>
+# ------------------------------------------------------------------------>
 
