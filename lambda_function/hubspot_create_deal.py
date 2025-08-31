@@ -75,16 +75,17 @@ def lambda_handler(event, context):
                 "nom"             : llm_data.get("entreprise", {}).get("nom"),
                 "id_hubspot"      : matching.get("hs_object_id"),
                 "is_naali_client" : matching.get("client_naali"),
-                "total_price"     : llm_data.get("total")
+                "total_price"     : llm_data.get("total"),
+                "products"        : llm_data["produits"]
             }
 
             # ----------------------------------------------------------->
             # (6) Création de la commande dans Hubspot
-            # deal_id = create_transaction_with_line_product(commande=commande)
+            deal_id = create_transaction_with_line_product(commande=commande)
             deal_id=12345
             print(f"✅ Transaction créée dans Hubspot pour le PDF {base_name}")
             # ----------------------------------------------------------->
-
+        
             # ----------------------------------------------------------->
             # (7) Mise à jour du log
             log_data["workflow"]["DEAL"]["status"]  = "Success"
