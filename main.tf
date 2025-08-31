@@ -64,7 +64,7 @@ resource "aws_lambda_function" "hubspot_create_deal" {
   layers = [
     data.aws_lambda_layer_version.requests.arn,
     data.aws_lambda_layer_version.python-dotenv.arn,
-    data.aws_lambda_layer_version.hubspot-api-client.arn
+    data.aws_lambda_layer_version.hubspot-api-client.arn,
     data.aws_lambda_layer_version.rapidfuzz.arn
 
 
