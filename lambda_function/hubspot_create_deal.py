@@ -93,7 +93,7 @@ def lambda_handler(event, context):
             product_name = i["input"]["nom_produit"]
 
             # Si le produit n'as pas été retrouvé sur Hubspot, on l'ajoute à la liste.
-            if i["match"] == "not_found":
+            if i["match"] == "no_match":
                 missing_matching_products.append(product_name)
 
             # Enregistrement du résultat du matching du produit dans le logging.
@@ -154,10 +154,10 @@ def lambda_handler(event, context):
 
         # ----------------------------------------------------------->
         # (9) Mise à jour du logging.
-        log_data["workflow"]["DEAL"]["status"]                       = "Success"
-        log_data["workflow"]["DEAL"]["details"]                      = "Created in Hubspot"
-        log_data["workflow"]["DEAL"]["transaction"]["dealname"]      = "TEST-" + commande["nom"]
-        log_data["workflow"]["DEAL"]["transaction"]["id_deal"]       = deal_id
+        log_data["workflow"]["DEAL"]["status"]                  = "Success"
+        log_data["workflow"]["DEAL"]["details"]                 = "Created in Hubspot"
+        log_data["workflow"]["DEAL"]["transaction"]["dealname"] = "TEST-" + commande["nom"]
+        log_data["workflow"]["DEAL"]["transaction"]["id_deal"]  = deal_id
         
         # Enregistrement du résultat du matching enrreprise.
         log_data["workflow"]["DEAL"]["matching_company"]             = {
@@ -187,6 +187,7 @@ def lambda_handler(event, context):
         }
 
     except Exception as e:
+        
         # ----------------------------------------------------------->
         # (10) Gestion d'erreur.
         print(f"❌ Erreur inattendue : {e}")
