@@ -329,4 +329,4 @@ def find_hubspot_company_ids(items: List[Dict[str, str]], min_score: int = 70) -
                 "client_naali": None
             })
 
-    return out
+    return out[0]
